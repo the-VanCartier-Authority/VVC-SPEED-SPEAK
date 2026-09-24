@@ -12,7 +12,7 @@ import urllib.request
 ROOT = pathlib.Path.cwd().resolve()
 README = ROOT / "README.md"
 API_KEY = os.environ.get("GEMINI_API_KEY")
-MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.6-flash")
 MAX_OUTPUT = int(os.environ.get("GEMINI_MAX_OUTPUT_TOKENS", "60000"))
 
 if not API_KEY:
