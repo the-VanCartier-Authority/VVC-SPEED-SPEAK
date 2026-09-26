@@ -28,7 +28,7 @@ ALLOWED_ROOTS = ("app/", "gradle/", "buildSrc/", "scripts/")
 ALLOWED_EXACT = {"README.md", "settings.gradle.kts", "build.gradle.kts", "gradle.properties", ".gitignore"}
 
 
-def call_gemini_api(prompt: str, max_tokens: int = 16000) -> dict:
+def call_gemini_api(prompt: str, max_tokens: int = 32000) -> dict:
     """Envía la solicitud a la API con esquema estricto y backoff respetuoso."""
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent"
     payload = {
@@ -63,7 +63,7 @@ def call_gemini_api(prompt: str, max_tokens: int = 16000) -> dict:
     }
 
     max_retries = 3
-    base_delay = 10  # Pausa inicial amplia para respetar la cuota del servidor
+    base_delay = 10
 
     for attempt in range(1, max_retries + 1):
         try:
@@ -93,7 +93,6 @@ def write_files(files_list: list) -> list[str]:
         relative = item["path"].replace("\\", "/")
         target = (ROOT / relative).resolve()
 
-        # Validación estricta de Path Traversal
         try:
             target.relative_to(ROOT)
         except ValueError:
@@ -137,7 +136,6 @@ Repository spec:
 result_p1 = call_gemini_api(prompt_phase_1, max_tokens=8000)
 written_files = write_files(result_p1.get("files", []))
 
-# Pausa de cortesía entre fases para liberar la ventana de la API
 time.sleep(5)
 
 # ==========================================
@@ -160,22 +158,9 @@ Requirements:
 Return ONLY valid JSON with 'summary' and 'files'.
 """
 
-# Se amplía la ventana de salida a 32,000 tokens para evitar JSON truncado
 result_p2 = call_gemini_api(prompt_phase_2, max_tokens=32000)
 written_files.extend(write_files(result_p2.get("files", [])))
 
-Return ONLY valid JSON with 'summary' and 'files'.
-
-Repository spec:
---- README.md ---
-{readme}
---- END README.md ---
-"""
-
-result_p2 = call_gemini_api(prompt_phase_2, max_tokens=16000)
-written_files.extend(write_files(result_p2.get("files", [])))
-
-# Asegurar la creación del reporte
 report = ROOT / "app/src/main/assets/VVC_SPEED_SPEAK_APPLICATION_REPORT.md"
 if not report.exists():
     report.parent.mkdir(parents=True, exist_ok=True)
@@ -197,4 +182,4 @@ print(
         ensure_ascii=False,
         indent=2,
     )
-)
+                )
