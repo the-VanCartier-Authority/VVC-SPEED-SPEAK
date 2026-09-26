@@ -13,7 +13,7 @@ import urllib.request
 ROOT = pathlib.Path.cwd().resolve()
 README = ROOT / "README.md"
 API_KEY = os.environ.get("GEMINI_API_KEY")
-MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.6-flash")
+MODEL = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")
 
 if not API_KEY:
     raise SystemExit("GEMINI_API_KEY is required")
@@ -28,7 +28,7 @@ ALLOWED_ROOTS = ("app/", "gradle/", "buildSrc/", "scripts/")
 ALLOWED_EXACT = {"README.md", "settings.gradle.kts", "build.gradle.kts", "gradle.properties", ".gitignore"}
 
 
-def call_gemini_api(prompt: str, max_tokens: int = 32000) -> dict:
+def call_gemini_api(prompt: str, max_tokens: int = 16000) -> dict:
     """Envía la solicitud a la API con esquema estricto y backoff respetuoso."""
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent"
     payload = {
@@ -158,7 +158,7 @@ Requirements:
 Return ONLY valid JSON with 'summary' and 'files'.
 """
 
-result_p2 = call_gemini_api(prompt_phase_2, max_tokens=32000)
+result_p2 = call_gemini_api(prompt_phase_2, max_tokens=16000)
 written_files.extend(write_files(result_p2.get("files", [])))
 
 report = ROOT / "app/src/main/assets/VVC_SPEED_SPEAK_APPLICATION_REPORT.md"
