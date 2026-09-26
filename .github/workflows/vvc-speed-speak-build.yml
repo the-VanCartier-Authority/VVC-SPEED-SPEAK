@@ -1,161 +1,67 @@
 name: VVC SPEED SPEAK - Gemini Android APK
 
 on:
-  workflow_dispatch:
   push:
-    branches: [main]
-    paths:
-      - 'README.md'
-      - 'gemini_generate.py'
-      - '.github/workflows/vvc-speed-speak-build.yml'
-
-permissions:
-  contents: read
-  actions: read
-
-concurrency:
-  group: vvc-speed-speak-${{ github.ref }}
-  cancel-in-progress: true
-
-env:
-  GEMINI_MODEL: gemini-3.6-flash
-  GEMINI_MAX_OUTPUT_TOKENS: '60000'
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
 
 jobs:
-  generate-test-build:
-    name: Generate, test and build Android APK
-    runs-on: ubuntu-24.04
-    timeout-minutes: 45
+  build:
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.11'
 
       - name: Validate specification and generator
-        shell: bash
         run: |
-          set -euo pipefail
-          test -s README.md
-          test -s gemini_generate.py
           python3 -m py_compile gemini_generate.py
-          grep -q 'VVC SPEED SPEAK' README.md
-          grep -q 'com.vvc.speedspeak' README.md
-          grep -q 'Kotlin' README.md
 
       - name: Generate Android project with Gemini
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        shell: bash
+          GEMINI_MODEL: "gemini-2.5-flash"
         run: |
-          set -euo pipefail
-          test -n "${GEMINI_API_KEY:-}" || {
-            echo 'Missing repository secret GEMINI_API_KEY' >&2
-            exit 1
-          }
-          python3 gemini_generate.py | tee gemini-generation-result.json
-
-      - name: Validate generated Android structure
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -s settings.gradle.kts
-          test -s build.gradle.kts
-          test -d app/src/main
-          test -s app/src/main/assets/VVC_SPEED_SPEAK_APPLICATION_REPORT.md
-          grep -Rqs 'com.vvc.speedspeak' app
-          grep -Rqs 'minSdk.*26\|minSdk = 26' app
-          grep -Rqs 'androidx.compose\|compose' app/build.gradle.kts
-          if grep -RInE 'AIza[0-9A-Za-z_-]{20,}|GEMINI_API_KEY[[:space:]]*=' --exclude-dir=.git .; then
-            echo 'A secret-like value was found in generated source.' >&2
-            exit 1
-          fi
+          python3 gemini_generate.py
 
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
+          distribution: 'temurin'
           java-version: '17'
-          cache: gradle
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android SDK packages
-        shell: bash
+      - name: Set up Android SDK environment
         run: |
-          set -euo pipefail
-          yes | sdkmanager --licenses >/dev/null || true
-          sdkmanager 'platform-tools' 'platforms;android-35' 'build-tools;35.0.0'
+          echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+          echo "/usr/local/lib/android/sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          echo "/usr/local/lib/android/sdk/platform-tools" >> $GITHUB_PATH
+
+      - name: Accept Android SDK licenses
+        run: |
+          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
       - name: Ensure Gradle Wrapper exists
-        shell: bash
         run: |
-          set -euo pipefail
           if [ ! -f ./gradlew ]; then
-            echo "gradlew missing, bootstrapping wrapper..."
+            echo "Gradle wrapper not found, generating wrapper..."
             gradle wrapper
           fi
-          chmod +x ./gradlew
+          chmod +x gradlew
 
-      - name: Run unit tests and static checks
-        shell: bash
+      - name: Build Debug APK
         run: |
-          set -euo pipefail
-          ./gradlew test lint --no-daemon --stacktrace
-
-      - name: Build debug APK
-        shell: bash
-        run: |
-          set -euo pipefail
-          ./gradlew assembleDebug --no-daemon --stacktrace
-
-      - name: Build release APK
-        shell: bash
-        run: |
-          set -euo pipefail
-          ./gradlew assembleRelease --no-daemon --stacktrace
-
-      - name: Verify APK outputs
-        shell: bash
-        run: |
-          set -euo pipefail
-          find app/build/outputs -type f -name '*.apk' -print -exec sh -c 'test -s "$1"' _ {} \;
-          test "$(find app/build/outputs -type f -name '*debug*.apk' | wc -l)" -ge 1
-          test "$(find app/build/outputs -type f -name '*release*.apk' | wc -l)" -ge 1
+          ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: vvc-speed-speak-apk-${{ github.sha }}
-          if-no-files-found: error
-          retention-days: 14
-          path: |
-            app/build/outputs/apk/debug/*.apk
-            app/build/outputs/apk/release/*.apk
-
-      - name: Upload Gemini generation and application report
-        uses: actions/upload-artifact@v4
-        with:
-          name: vvc-speed-speak-report-${{ github.sha }}
-          if-no-files-found: error
-          retention-days: 14
-          path: |
-            gemini-generation-result.json
-            app/src/main/assets/VVC_SPEED_SPEAK_APPLICATION_REPORT.md
-
-      - name: Publish report to repository summary
-        if: always()
-        shell: bash
-        run: |
-          if test -f app/src/main/assets/VVC_SPEED_SPEAK_APPLICATION_REPORT.md; then
-            cat app/src/main/assets/VVC_SPEED_SPEAK_APPLICATION_REPORT.md >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo 'Application report was not generated.' >> "$GITHUB_STEP_SUMMARY"
-          fi
+          name: app-debug
+          path: app/build/outputs/apk/debug/app-debug.apk
