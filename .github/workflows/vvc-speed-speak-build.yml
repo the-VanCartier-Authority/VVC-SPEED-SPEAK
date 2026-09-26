@@ -27,7 +27,7 @@ jobs:
       - name: Generate Android project with Gemini
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GEMINI_MODEL: "gemini-2.5-flash"
+          GEMINI_MODEL: "gemini-1.5-flash"
         run: |
           python3 gemini_generate.py
 
