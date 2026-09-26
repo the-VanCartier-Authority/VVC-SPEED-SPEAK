@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Generate an Android/Kotlin project from README instructions using Gemini REST API."""
+"""Generate an Android/Kotlin project in 2 light phases using Gemini REST API."""
 from __future__ import annotations
 
 import json
 import os
 import pathlib
 import sys
+import time
 import urllib.error
 import urllib.request
 
@@ -13,7 +14,6 @@ ROOT = pathlib.Path.cwd().resolve()
 README = ROOT / "README.md"
 API_KEY = os.environ.get("GEMINI_API_KEY")
 MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.6-flash")
-MAX_OUTPUT = int(os.environ.get("GEMINI_MAX_OUTPUT_TOKENS", "60000"))
 
 if not API_KEY:
     raise SystemExit("GEMINI_API_KEY is required")
@@ -24,146 +24,169 @@ readme = README.read_text(encoding="utf-8")
 if len(readme) > 180_000:
     raise SystemExit("README.md is too large for this workflow; reduce it below 180,000 characters")
 
-prompt = f"""
+ALLOWED_ROOTS = ("app/", "gradle/", "buildSrc/", "scripts/")
+ALLOWED_EXACT = {"README.md", "settings.gradle.kts", "build.gradle.kts", "gradle.properties", ".gitignore"}
+
+
+def call_gemini_api(prompt: str, max_tokens: int = 16000) -> dict:
+    """Envía la solicitud a la API con esquema estricto y backoff respetuoso."""
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent"
+    payload = {
+        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+        "generationConfig": {
+            "temperature": 0.15,
+            "responseMimeType": "application/json",
+            "maxOutputTokens": max_tokens,
+            "responseSchema": {
+                "type": "OBJECT",
+                "properties": {
+                    "summary": {"type": "STRING"},
+                    "files": {
+                        "type": "ARRAY",
+                        "items": {
+                            "type": "OBJECT",
+                            "properties": {
+                                "path": {"type": "STRING"},
+                                "content": {"type": "STRING"},
+                            },
+                            "required": ["path", "content"],
+                        },
+                    },
+                },
+                "required": ["summary", "files"],
+            },
+        },
+    }
+    headers = {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": API_KEY,
+    }
+
+    max_retries = 3
+    base_delay = 10  # Pausa inicial amplia para respetar la cuota del servidor
+
+    for attempt in range(1, max_retries + 1):
+        try:
+            request = urllib.request.Request(
+                url,
+                data=json.dumps(payload).encode("utf-8"),
+                headers=headers,
+                method="POST",
+            )
+            with urllib.request.urlopen(request, timeout=300) as response:
+                body = json.load(response)
+                text = body["candidates"][0]["content"]["parts"][0]["text"]
+                return json.loads(text)
+        except (urllib.error.HTTPError, KeyError, json.JSONDecodeError) as exc:
+            if attempt < max_retries:
+                sleep_time = base_delay * attempt
+                print(f"[Aviso] Reintento suave ({attempt}/{max_retries}) en {sleep_time}s por: {exc}", file=sys.stderr)
+                time.sleep(sleep_time)
+            else:
+                raise SystemExit(f"Falla crítica en comunicación con Gemini API: {exc}") from exc
+
+
+def write_files(files_list: list) -> list[str]:
+    """Valida la seguridad de las rutas y escribe los archivos en disco."""
+    written = []
+    for item in files_list:
+        relative = item["path"].replace("\\", "/")
+        target = (ROOT / relative).resolve()
+
+        # Validación estricta de Path Traversal
+        try:
+            target.relative_to(ROOT)
+        except ValueError:
+            raise SystemExit(f"Ruta insegura detectada fuera de ROOT: {relative}")
+
+        if relative.startswith("/") or ".." in pathlib.PurePosixPath(relative).parts:
+            raise SystemExit(f"Ruta relativa no permitida: {relative}")
+
+        if relative not in ALLOWED_EXACT and not relative.startswith(ALLOWED_ROOTS):
+            raise SystemExit(f"Ruta fuera de los límites permitidos del proyecto: {relative}")
+
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(item["content"], encoding="utf-8")
+        written.append(relative)
+    return written
+
+
+# ==========================================
+# FASE 1: Estructura base y Configuración
+# ==========================================
+print("Ejecutando Fase 1: Generación de infraestructura y scripts de build...", file=sys.stderr)
+prompt_phase_1 = f"""
 You are the senior Android engineer for the VVC SPEED SPEAK project.
-Read the complete repository specification below and generate a complete, buildable Android APK project.
-The application MUST be native Android written in Kotlin, using Jetpack Compose and Gradle Kotlin DSL.
-Do not generate a web app, Flutter app, React Native app, Java app, or JavaScript app.
+PHASE 1 TASK: Generate ONLY the project foundation and build setup.
 
-Requirements:
-- package/namespace/applicationId: com.vvc.speedspeak
-- minSdk: 26
-- Compose UI with cyberpunk retrofuturist design: deep obsidian black, intense neon violet,
-  neon cyan, neon red; accessible contrast; polished mobile-first UI.
-- First MVP flow: paste long text, choose a voice, choose speed, generate/play audio,
-  pause, resume, stop, clear, and show processing/error states.
-- Do not use browser SpeechSynthesis. Implement a TTS abstraction and a clearly marked
-  local/placeholder engine that compiles without proprietary credentials. Keep the code
-  ready for a real local or remote natural TTS engine.
-- Split long text safely by paragraphs/sentences.
-- Include unit tests for text splitting and ViewModel state transitions.
-- Include AndroidManifest, Gradle files, source code, tests, resources, and a Gradle wrapper
-  configuration if possible. Never include binary files or secrets.
-- Put the application report at app/src/main/assets/VVC_SPEED_SPEAK_APPLICATION_REPORT.md.
+Requirements for Phase 1:
+- Root files: settings.gradle.kts, build.gradle.kts, gradle.properties, .gitignore.
+- App files: app/build.gradle.kts, app/src/main/AndroidManifest.xml.
+- Application ID / Package: com.vvc.speedspeak
+- minSdk: 26, targetSdk/compileSdk: 35.
+- Enable Jetpack Compose and Kotlin DSL. Include dependencies for Compose UI, Material3, Lifecycle ViewModel, and Coroutines.
 
-Rules for files:
-- Every file must be complete, not a patch and not an ellipsis.
-- Paths must be relative and use forward slashes.
-- Allowed generated files are README.md, settings.gradle.kts, build.gradle.kts,
-  gradle.properties, gradle/libs.versions.toml, app/**, buildSrc/**, scripts/**,
-  and .gitignore.
-- Do not return secrets, API keys, certificates, keystores, binaries, or files outside the repository.
-- Preserve the requested report path and make the report explain architecture, features,
-  design, TTS decision, tests, build instructions, and known limitations.
+Return ONLY valid JSON with 'summary' and 'files'.
 
-Repository specification:
+Repository spec:
 --- README.md ---
 {readme}
 --- END README.md ---
 """
 
-# Se elimina el API key de la URL para evitar exposición en logs de red
-url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent"
+result_p1 = call_gemini_api(prompt_phase_1, max_tokens=8000)
+written_files = write_files(result_p1.get("files", []))
 
-payload = {
-    "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-    "generationConfig": {
-        "temperature": 0.15,
-        "responseMimeType": "application/json",
-        "maxOutputTokens": MAX_OUTPUT,
-        # Esquema forzado para asegurar validez estricta del JSON
-        "responseSchema": {
-            "type": "OBJECT",
-            "properties": {
-                "summary": {"type": "STRING"},
-                "files": {
-                    "type": "ARRAY",
-                    "items": {
-                        "type": "OBJECT",
-                        "properties": {
-                            "path": {"type": "STRING"},
-                            "content": {"type": "STRING"},
-                        },
-                        "required": ["path", "content"],
-                    },
-                },
-            },
-            "required": ["summary", "files"],
-        },
-    },
-}
+# Pausa de cortesía entre fases para liberar la ventana de la API
+time.sleep(5)
 
-# Se envía la API key en los headers de forma segura
-headers = {
-    "Content-Type": "application/json",
-    "X-Goog-Api-Key": API_KEY,
-}
+# ==========================================
+# FASE 2: Lógica Kotlin, UI Compose y Tests
+# ==========================================
+print("Ejecutando Fase 2: Generación de código Kotlin, UI Compose y Reporte...", file=sys.stderr)
+prompt_phase_2 = f"""
+You are the senior Android engineer for the VVC SPEED SPEAK project.
+PHASE 2 TASK: Generate the Kotlin source code, UI, unit tests, and report.
 
-request = urllib.request.Request(
-    url,
-    data=json.dumps(payload).encode("utf-8"),
-    headers=headers,
-    method="POST",
-)
+Requirements for Phase 2:
+- Cyberpunk retrofuturist Compose UI (deep obsidian black, neon violet, neon cyan).
+- Flow: Paste text, voice/speed controls, audio player controls (play/pause/stop), status indicators.
+- Local TTS abstraction (compilable placeholder/mock engine).
+- Safe text splitting logic by paragraphs/sentences.
+- Unit tests for text splitting and ViewModel.
+- Output report at: app/src/main/assets/VVC_SPEED_SPEAK_APPLICATION_REPORT.md
 
-try:
-    with urllib.request.urlopen(request, timeout=900) as response:
-        body = json.load(response)
-except urllib.error.HTTPError as exc:
-    detail = exc.read().decode("utf-8", errors="replace")
-    raise SystemExit(f"Gemini API HTTP {exc.code}: {detail}") from exc
-except urllib.error.URLError as exc:
-    raise SystemExit(f"Gemini API connection failed: {exc}") from exc
+Return ONLY valid JSON with 'summary' and 'files'.
 
-try:
-    text = body["candidates"][0]["content"]["parts"][0]["text"]
-except (KeyError, IndexError, TypeError) as exc:
-    raise SystemExit(f"Gemini response did not contain generated content: {body}") from exc
+Repository spec:
+--- README.md ---
+{readme}
+--- END README.md ---
+"""
 
-try:
-    result = json.loads(text)
-except json.JSONDecodeError as exc:
-    raise SystemExit(f"Gemini returned invalid JSON: {exc}\n{text[:2000]}") from exc
+result_p2 = call_gemini_api(prompt_phase_2, max_tokens=16000)
+written_files.extend(write_files(result_p2.get("files", [])))
 
-files = result.get("files")
-if not isinstance(files, list) or not files:
-    raise SystemExit("Gemini returned no files")
-
-allowed_roots = ("app/", "gradle/", "buildSrc/", "scripts/")
-allowed_exact = {"README.md", "settings.gradle.kts", "build.gradle.kts", "gradle.properties", ".gitignore"}
-written = []
-
-for item in files:
-    if not isinstance(item, dict) or not isinstance(item.get("path"), str) or not isinstance(item.get("content"), str):
-        raise SystemExit("Gemini returned a malformed file entry")
-    
-    relative = item["path"].replace("\\", "/")
-    target = (ROOT / relative).resolve()
-    
-    # Validaciones estricta de Path Traversal
-    try:
-        target.relative_to(ROOT)
-    except ValueError:
-        raise SystemExit(f"Refusing unsafe generated path outside root: {relative}")
-
-    if relative.startswith("/") or ".." in pathlib.PurePosixPath(relative).parts:
-        raise SystemExit(f"Refusing unsafe generated path: {relative}")
-        
-    if relative not in allowed_exact and not relative.startswith(allowed_roots):
-        raise SystemExit(f"Refusing file outside allowed project paths: {relative}")
-
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(item["content"], encoding="utf-8")
-    written.append(relative)
-
+# Asegurar la creación del reporte
 report = ROOT / "app/src/main/assets/VVC_SPEED_SPEAK_APPLICATION_REPORT.md"
 if not report.exists():
     report.parent.mkdir(parents=True, exist_ok=True)
     report.write_text(
         "# VVC SPEED SPEAK — Informe de generación\n\n"
-        + str(result.get("summary", "Generación completada por Gemini."))
+        + str(result_p2.get("summary", "Generación de proyecto completada en 2 fases."))
         + "\n",
         encoding="utf-8",
     )
 
-print(json.dumps({"model": MODEL, "files_written": sorted(set(written)), "report": str(report)}, ensure_ascii=False, indent=2))
+print(
+    json.dumps(
+        {
+            "model": MODEL,
+            "status": "success",
+            "files_written": sorted(set(written_files)),
+            "report": str(report),
+        },
+        ensure_ascii=False,
+        indent=2,
+    )
+)
