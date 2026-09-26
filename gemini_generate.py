@@ -146,15 +146,23 @@ time.sleep(5)
 print("Ejecutando Fase 2: Generación de código Kotlin, UI Compose y Reporte...", file=sys.stderr)
 prompt_phase_2 = f"""
 You are the senior Android engineer for the VVC SPEED SPEAK project.
-PHASE 2 TASK: Generate the Kotlin source code, UI, unit tests, and report.
+PHASE 2 TASK: Generate Essential Kotlin source code, UI Compose, unit tests, and report.
 
-Requirements for Phase 2:
-- Cyberpunk retrofuturist Compose UI (deep obsidian black, neon violet, neon cyan).
-- Flow: Paste text, voice/speed controls, audio player controls (play/pause/stop), status indicators.
-- Local TTS abstraction (compilable placeholder/mock engine).
-- Safe text splitting logic by paragraphs/sentences.
-- Unit tests for text splitting and ViewModel.
-- Output report at: app/src/main/assets/VVC_SPEED_SPEAK_APPLICATION_REPORT.md
+Keep implementation clean, precise, and modular. Do not write oversized boilerplate.
+
+Requirements:
+- Main screen with Jetpack Compose (cyberpunk style: deep black, neon violet, neon cyan).
+- ViewModel with state handling (text input, voice/speed, play/pause/stop).
+- TTS abstraction & mock implementation.
+- Text splitting logic + 1 Unit Test file.
+- Report at: app/src/main/assets/VVC_SPEED_SPEAK_APPLICATION_REPORT.md
+
+Return ONLY valid JSON with 'summary' and 'files'.
+"""
+
+# Se amplía la ventana de salida a 32,000 tokens para evitar JSON truncado
+result_p2 = call_gemini_api(prompt_phase_2, max_tokens=32000)
+written_files.extend(write_files(result_p2.get("files", [])))
 
 Return ONLY valid JSON with 'summary' and 'files'.
 
