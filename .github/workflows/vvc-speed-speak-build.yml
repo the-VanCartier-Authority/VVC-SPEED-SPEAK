@@ -1,4 +1,4 @@
-name: VVC SPEED SPEAK - Gemini Android APK
+Name: VVC SPEED SPEAK - Gemini Android APK
 
 on:
   workflow_dispatch:
@@ -33,6 +33,11 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Validate specification and generator
         shell: bash
         run: |
@@ -43,11 +48,6 @@ jobs:
           grep -q 'VVC SPEED SPEAK' README.md
           grep -q 'com.vvc.speedspeak' README.md
           grep -q 'Kotlin' README.md
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
 
       - name: Generate Android project with Gemini
         env:
@@ -92,17 +92,17 @@ jobs:
         run: |
           set -euo pipefail
           yes | sdkmanager --licenses >/dev/null || true
-          if grep -Rqs 'compileSdk[[:space:]]*=[[:space:]]*3[0-9]' app build.gradle.kts; then
-            sdkmanager 'platform-tools' 'platforms;android-35' 'build-tools;35.0.0'
-          else
-            sdkmanager 'platform-tools' 'platforms;android-35' 'build-tools;35.0.0'
-          fi
+          sdkmanager 'platform-tools' 'platforms;android-35' 'build-tools;35.0.0'
 
-      - name: Make Gradle executable
+      - name: Ensure Gradle Wrapper exists
         shell: bash
         run: |
           set -euo pipefail
-          if test -f ./gradlew; then chmod +x ./gradlew; else echo 'gradlew is missing' >&2; exit 1; fi
+          if [ ! -f ./gradlew ]; then
+            echo "gradlew missing, bootstrapping wrapper..."
+            gradle wrapper
+          fi
+          chmod +x ./gradlew
 
       - name: Run unit tests and static checks
         shell: bash
