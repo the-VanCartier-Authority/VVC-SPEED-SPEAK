@@ -1,4 +1,4 @@
-Name: VVC SPEED SPEAK - Gemini Android APK
+name: VVC SPEED SPEAK - Gemini Android APK
 
 on:
   workflow_dispatch:
