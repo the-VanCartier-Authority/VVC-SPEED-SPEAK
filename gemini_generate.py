@@ -46,14 +46,6 @@ Requirements:
   configuration if possible. Never include binary files or secrets.
 - Put the application report at app/src/main/assets/VVC_SPEED_SPEAK_APPLICATION_REPORT.md.
 
-Return ONLY valid JSON with this exact shape:
-{{
-  "summary": "short implementation summary",
-  "files": [
-    {{"path": "relative/path/to/file", "content": "complete UTF-8 file content"}}
-  ]
-}}
-
 Rules for files:
 - Every file must be complete, not a patch and not an ellipsis.
 - Paths must be relative and use forward slashes.
@@ -70,21 +62,50 @@ Repository specification:
 --- END README.md ---
 """
 
-url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={API_KEY}"
+# Se elimina el API key de la URL para evitar exposición en logs de red
+url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent"
+
 payload = {
     "contents": [{"role": "user", "parts": [{"text": prompt}]}],
     "generationConfig": {
         "temperature": 0.15,
         "responseMimeType": "application/json",
         "maxOutputTokens": MAX_OUTPUT,
+        # Esquema forzado para asegurar validez estricta del JSON
+        "responseSchema": {
+            "type": "OBJECT",
+            "properties": {
+                "summary": {"type": "STRING"},
+                "files": {
+                    "type": "ARRAY",
+                    "items": {
+                        "type": "OBJECT",
+                        "properties": {
+                            "path": {"type": "STRING"},
+                            "content": {"type": "STRING"},
+                        },
+                        "required": ["path", "content"],
+                    },
+                },
+            },
+            "required": ["summary", "files"],
+        },
     },
 }
+
+# Se envía la API key en los headers de forma segura
+headers = {
+    "Content-Type": "application/json",
+    "X-Goog-Api-Key": API_KEY,
+}
+
 request = urllib.request.Request(
     url,
     data=json.dumps(payload).encode("utf-8"),
-    headers={"Content-Type": "application/json"},
+    headers=headers,
     method="POST",
 )
+
 try:
     with urllib.request.urlopen(request, timeout=900) as response:
         body = json.load(response)
@@ -111,15 +132,26 @@ if not isinstance(files, list) or not files:
 allowed_roots = ("app/", "gradle/", "buildSrc/", "scripts/")
 allowed_exact = {"README.md", "settings.gradle.kts", "build.gradle.kts", "gradle.properties", ".gitignore"}
 written = []
+
 for item in files:
     if not isinstance(item, dict) or not isinstance(item.get("path"), str) or not isinstance(item.get("content"), str):
         raise SystemExit("Gemini returned a malformed file entry")
+    
     relative = item["path"].replace("\\", "/")
     target = (ROOT / relative).resolve()
+    
+    # Validaciones estricta de Path Traversal
+    try:
+        target.relative_to(ROOT)
+    except ValueError:
+        raise SystemExit(f"Refusing unsafe generated path outside root: {relative}")
+
     if relative.startswith("/") or ".." in pathlib.PurePosixPath(relative).parts:
         raise SystemExit(f"Refusing unsafe generated path: {relative}")
+        
     if relative not in allowed_exact and not relative.startswith(allowed_roots):
         raise SystemExit(f"Refusing file outside allowed project paths: {relative}")
+
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(item["content"], encoding="utf-8")
     written.append(relative)
@@ -128,9 +160,9 @@ report = ROOT / "app/src/main/assets/VVC_SPEED_SPEAK_APPLICATION_REPORT.md"
 if not report.exists():
     report.parent.mkdir(parents=True, exist_ok=True)
     report.write_text(
-        "# VVC SPEED SPEAK — Informe de generación\\n\\n"
+        "# VVC SPEED SPEAK — Informe de generación\n\n"
         + str(result.get("summary", "Generación completada por Gemini."))
-        + "\\n",
+        + "\n",
         encoding="utf-8",
     )
 
