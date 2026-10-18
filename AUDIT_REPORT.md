@@ -36,7 +36,17 @@ El repositorio no tenía `gradlew` ni `gradle/wrapper/gradle-wrapper.jar`, pero 
 ./gradlew --no-daemon assembleRelease assembleDebug --stacktrace
 ```
 
-### 3. Diferencia entre README y pipeline — pendiente de aclaración
+### 3. Ruta de keystore incorrecta — corregido
+
+Tras corregir el SDK y el wrapper, la ejecución `39113034013` llegó a Gradle y falló con:
+
+```text
+Keystore file '/home/runner/work/VVC-SPEED-SPEAK/VVC-SPEED-SPEAK/app/my-upload-key.jks' not found
+```
+
+El workflow crea `my-upload-key.jks` en la raíz del checkout, pero el script del módulo usaba `rootDir`, que dentro de `app/build.gradle.kts` apunta al directorio `app/`. La configuración ahora usa `rootProject.file(...)` para release y debug, y el workflow genera también `debug.keystore` en la raíz.
+
+### 4. Diferencia entre README y pipeline — pendiente de aclaración
 
 El README presenta Python, Kivy y Buildozer como la tecnología principal, mientras que el job activo compila Kotlin/Compose. La raíz contiene `main.py` y `buildozer.spec`, pero el APK que publica el workflow procede de `app/`. Conviene decidir si el producto oficial será:
 
@@ -44,11 +54,11 @@ El README presenta Python, Kivy y Buildozer como la tecnología principal, mient
 2. la app Python/Kivy/Buildozer; o
 3. ambas, con workflows separados y nombres de artefacto inequívocos.
 
-### 4. Desalineación de motores TTS — pendiente de aclaración
+### 5. Desalineación de motores TTS — pendiente de aclaración
 
 El README menciona KittenTTS. La aplicación Python documenta Kokoro como respaldo y la implementación nativa contiene catálogos/clases de ambos motores, pero el flujo real debe verificarse funcionalmente en un dispositivo. La compilación correcta no demuestra que los modelos de voz estén incluidos ni que la reproducción sea completamente offline.
 
-### 5. Nombre y activos — observación
+### 6. Nombre y activos — observación
 
 El repositorio accesible coincide con `VVC-SPEED-SPEAK`, mientras que la solicitud utiliza `VVC-SPEAD-SPEAK`. El README también comienza con `WVC Speed Speak`. La nomenclatura debería unificarse para evitar confusiones en enlaces, artefactos y documentación. Los recursos Android usan `ic_launcher.png` dentro de los directorios `app/src/main/res/mipmap-*`; si se añade un flujo de activos Python, debe respetarse la ruta indicada por el proyecto (`assets/images/`) y el nombre `ic_launcher.png`.
 
@@ -62,11 +72,13 @@ El repositorio accesible coincide con `VVC-SPEED-SPEAK`, mientras que la solicit
 - Se cambió la compilación para usar `./gradlew`.
 - Se generó el Gradle Wrapper de Gradle 9.3.1.
 - Se configuró `if-no-files-found: error` para los artefactos release y debug.
+- Se corrigió la resolución de las keystores desde el proyecto raíz y se añadió la generación de `debug.keystore` en CI.
 
 ## Verificación
 
 - El Gradle Wrapper se generó correctamente con Gradle 9.3.1.
 - La corrección del workflow elimina exactamente la causa observada en la ejecución `39112257865`.
+- La ejecución `39113034013` confirmó que el SDK y Gradle ya funcionan; su único fallo restante fue la ruta de firma, que quedó corregida después.
 - La compilación completa de APK debe confirmarse en el runner de GitHub Actions porque el sandbox de auditoría no tiene Android SDK local instalado.
 
 ## Recomendaciones

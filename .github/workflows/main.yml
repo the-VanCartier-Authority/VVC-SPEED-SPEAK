@@ -55,6 +55,19 @@ jobs:
             keytool -genkeypair -v -keystore my-upload-key.jks -alias upload -keyalg RSA -keysize 2048 -validity 10000 -storepass "${{ secrets.STORE_PASSWORD || 'android' }}" -keypass "${{ secrets.KEY_PASSWORD || 'android' }}" -dname "CN=VVCSpeedSpeak, OU=Mobile, O=VVC, L=City, S=State, C=US"
           fi
 
+          if [ ! -f debug.keystore ]; then
+            echo "Generating debug keystore..."
+            keytool -genkeypair -v \
+              -keystore debug.keystore \
+              -alias androiddebugkey \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -storepass android \
+              -keypass android \
+              -dname "CN=Android Debug, O=Android, C=US"
+          fi
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
