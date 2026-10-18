@@ -28,7 +28,7 @@ COLOR_COBALT = get_color_from_hex("#00D4FF")
 COLOR_TEXT_WHITE = get_color_from_hex("#F8FAFC")
 COLOR_TEXT_MUTED = get_color_from_hex("#94A3B8")
 
-class VVCSpeedSpeakApp(App):
+class VvcSpeedSpeakApp(App):
     def build(self):
         self.title = "VVC SPEED SPEAK"
         self.sentences = []
@@ -252,4 +252,4 @@ class VVCSpeedSpeakApp(App):
             pass
 
 if __name__ == '__main__':
-    VVCSpeedSpeakApp().run()
+    VvcSpeedSpeakApp().run()

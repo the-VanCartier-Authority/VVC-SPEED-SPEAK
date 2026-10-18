@@ -52,7 +52,7 @@ jobs:
             echo "$KEYSTORE_BASE64" | base64 --decode > my-upload-key.jks
           else
             echo "No custom keystore found in secrets. Generating standard upload key..."
-            keytool -genkeypair -v -keystore my-upload-key.jks -alias upload -keyalg RSA -keysize 2048 -validity 10000 -storepass "${{ secrets.STORE_PASSWORD || 'android' }}" -keypass "${{ secrets.KEY_PASSWORD || 'android' }}" -dname "CN=VVCSpeedSpeak, OU=Mobile, O=VVC, L=City, S=State, C=US"
+            keytool -genkeypair -v -keystore my-upload-key.jks -alias upload -keyalg RSA -keysize 2048 -validity 10000 -storepass "${{ secrets.STORE_PASSWORD || 'android' }}" -keypass "${{ secrets.KEY_PASSWORD || 'android' }}" -dname "CN=VVC SPEED SPEAK, OU=Mobile, O=VVC, L=City, S=State, C=US"
           fi
 
           if [ ! -f debug.keystore ]; then
@@ -83,7 +83,7 @@ jobs:
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
-          name: VVC-Speed-Speak-Release-APK
+          name: VVC-SPEED-SPEAK-Release-APK
           path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 14
@@ -91,7 +91,7 @@ jobs:
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: VVC-Speed-Speak-Debug-APK
+          name: VVC-SPEED-SPEAK-Debug-APK
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 14
@@ -134,5 +134,5 @@ jobs:
       - name: Upload Buildozer APK
         uses: actions/upload-artifact@v4
         with:
-          name: VVC-Speed-Speak-Buildozer-APK
+          name: VVC-SPEED-SPEAK-Buildozer-APK
           path: bin/*.apk

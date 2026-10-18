@@ -7,7 +7,7 @@ title = VVC SPEED SPEAK
 package.name = vvcspeedspeak
 
 # (str) Package domain (needed for android/ios packaging)
-package.domain = org.vvc
+package.domain = com.vvc
 
 # (str) Source code where the main.py lives
 source.dir = .

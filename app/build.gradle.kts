@@ -9,11 +9,11 @@ plugins {
 }
 
 android {
-  namespace = "com.example"
+  namespace = "com.vvc.speedspeak"
   compileSdk { version = release(36) { minorApiLevel = 1 } }
 
   defaultConfig {
-    applicationId = "com.aistudio.vvcspeedspeak.rfytkz"
+    applicationId = "com.vvc.speedspeak"
     minSdk = 24
     targetSdk = 36
     versionCode = 1

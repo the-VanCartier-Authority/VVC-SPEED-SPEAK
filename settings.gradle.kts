@@ -22,6 +22,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "VVC Speed Speak"
+rootProject.name = "VVC SPEED SPEAK"
 
 include(":app")

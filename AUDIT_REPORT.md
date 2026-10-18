@@ -62,6 +62,10 @@ El README menciona KittenTTS. La aplicación Python documenta Kokoro como respal
 
 El repositorio correcto es `VVC-SPEED-SPEAK` y la marca oficial es `VVC SPEED SPEAK`. Se corrigieron las referencias visibles que usaban `WVC` o `VVC Speed Speak`. El icono del sistema se integró en `assets/ic_launcher.png`, `app/src/main/res/drawable/ic_app_logo.png` y los mipmap por densidad. El logo horizontal se integró en `assets/logo.png` y se muestra en el encabezado Compose mediante `R.drawable.logo`. La composición de referencia quedó disponible como `assets/branding.png`.
 
+### 7. Nomenclatura interna — corregido
+
+La configuración Android ya no usa los valores generados `com.example`, `MyApplication` ni el `applicationId` temporal de AI Studio. El namespace y el `applicationId` oficiales son `com.vvc.speedspeak`; el tema es `VvcSpeedSpeakTheme`; las fuentes Kotlin y pruebas están bajo `com/vvc/speedspeak`; y el proyecto Gradle se llama `VVC SPEED SPEAK`. También se renombraron el ViewModel y las pruebas para eliminar nombres genéricos. El identificador Buildozer queda como slug técnico `vvcspeedspeak`.
+
 ## Cambios realizados
 
 - Se modificó `.github/workflows/main.yml`.

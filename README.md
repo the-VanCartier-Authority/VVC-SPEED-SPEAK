@@ -39,6 +39,9 @@ Los recursos oficiales de marca son:
 * **Kivy / Buildozer** para la estructura móvil y compilación en Android.
 * **GitHub Actions** para la generación automática del archivo `.apk` en la nube.
 
+**Identificador Android:** `com.vvc.speedspeak`<br>
+**Nombre técnico Buildozer:** `vvcspeedspeak`
+
 ---
 
 ## ⚙️ Compilación Automática (CI/CD)
