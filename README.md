@@ -1,9 +1,9 @@
-# 🚀 WVC Speed Speak
+# 🚀 VVC SPEED SPEAK
 
 > **Texto → Voz → Audio** | Lector de documentos inteligente, privado y 100% offline para Android.
 
 <p align="center">
-  <img src="assets/banner.png" alt="WVC Speed Speak Banner" width="100%">
+  <img src="assets/branding.png" alt="VVC SPEED SPEAK Banner" width="100%">
 </p>
 
 ---
@@ -25,6 +25,11 @@ La aplicación cuenta con una interfaz de diseño futurista en modo oscuro, cara
 * Estética metálica y limpia.
 * Controles multimedia intuitivos (Reproducir, Pausar, Detener y control de velocidad).
 
+Los recursos oficiales de marca son:
+* `assets/ic_launcher.png`: icono de aplicación para el sistema.
+* `assets/logo.png`: logo horizontal mostrado dentro de la interfaz.
+* `assets/branding.png`: composición de referencia de la identidad visual.
+
 ---
 
 ## 🛠️ Tecnologías Utilizadas
@@ -45,4 +50,3 @@ Este proyecto está configurado para compilarse automáticamente mediante **GitH
 ## 📄 Licencia
 
 Este proyecto se distribuye bajo los términos de la licencia de código abierto.
-

@@ -337,9 +337,9 @@ object DocumentExtractor {
 
     val sampleDocuments = listOf(
         Pair(
-            "⚡ Manifiesto VVC Speed Speak",
+            "⚡ Manifiesto VVC SPEED SPEAK",
             """
-            Bienvenido a VVC Speed Speak, tu sistema de síntesis y lectura acelerada 100% offline.
+            Bienvenido a VVC SPEED SPEAK, tu sistema de síntesis y lectura acelerada 100% offline.
             
             Diseñado para la máxima privacidad, todo el procesamiento de tus documentos PDF y archivos de texto plano se ejecuta de forma completamente local en tu dispositivo, sin requerir conexión a internet ni enviar tus datos a servidores externos.
             
@@ -353,7 +353,7 @@ object DocumentExtractor {
             """
             KittenTTS de KittenML ha revolucionado la síntesis local en dispositivos móviles por su extrema ligereza, baja latencia y prosodia humana en español latinoamericano.
             
-            La arquitectura de doble motor en VVC Speed Speak combina KittenTTS como procesador primario y Kokoro-82M como alternativa de alta expresividad, garantizando que nunca te quedes sin voz incluso en documentos de cientos de páginas.
+            La arquitectura de doble motor en VVC SPEED SPEAK combina KittenTTS como procesador primario y Kokoro-82M como alternativa de alta expresividad, garantizando que nunca te quedes sin voz incluso en documentos de cientos de páginas.
             
             Todo funciona de manera 100% offline y en tu dispositivo.
             """.trimIndent()

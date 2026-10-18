@@ -1,5 +1,5 @@
 {
-  "name": "VVC Speed Speak",
+  "name": "VVC SPEED SPEAK",
   "description": "Lector y reproductor TTS 100% offline con KittenTTS de KittenML como motor principal y Kokoro-82M de respaldo para documentos PDF y TXT.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

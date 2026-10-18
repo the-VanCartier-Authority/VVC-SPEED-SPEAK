@@ -1,4 +1,4 @@
-# Informe de auditoría — VVC Speed Speak
+# Informe de auditoría — VVC SPEED SPEAK
 
 **Repositorio auditado:** `the-VanCartier-Authority/VVC-SPEED-SPEAK`  
 **Rama:** `main`  
@@ -58,9 +58,9 @@ El README presenta Python, Kivy y Buildozer como la tecnología principal, mient
 
 El README menciona KittenTTS. La aplicación Python documenta Kokoro como respaldo y la implementación nativa contiene catálogos/clases de ambos motores, pero el flujo real debe verificarse funcionalmente en un dispositivo. La compilación correcta no demuestra que los modelos de voz estén incluidos ni que la reproducción sea completamente offline.
 
-### 6. Nombre y activos — observación
+### 6. Nombre y activos — corregido
 
-El repositorio accesible coincide con `VVC-SPEED-SPEAK`, mientras que la solicitud utiliza `VVC-SPEAD-SPEAK`. El README también comienza con `WVC Speed Speak`. La nomenclatura debería unificarse para evitar confusiones en enlaces, artefactos y documentación. Los recursos Android usan `ic_launcher.png` dentro de los directorios `app/src/main/res/mipmap-*`; si se añade un flujo de activos Python, debe respetarse la ruta indicada por el proyecto (`assets/images/`) y el nombre `ic_launcher.png`.
+El repositorio correcto es `VVC-SPEED-SPEAK` y la marca oficial es `VVC SPEED SPEAK`. Se corrigieron las referencias visibles que usaban `WVC` o `VVC Speed Speak`. El icono del sistema se integró en `assets/ic_launcher.png`, `app/src/main/res/drawable/ic_app_logo.png` y los mipmap por densidad. El logo horizontal se integró en `assets/logo.png` y se muestra en el encabezado Compose mediante `R.drawable.logo`. La composición de referencia quedó disponible como `assets/branding.png`.
 
 ## Cambios realizados
 
@@ -73,13 +73,15 @@ El repositorio accesible coincide con `VVC-SPEED-SPEAK`, mientras que la solicit
 - Se generó el Gradle Wrapper de Gradle 9.3.1.
 - Se configuró `if-no-files-found: error` para los artefactos release y debug.
 - Se corrigió la resolución de las keystores desde el proyecto raíz y se añadió la generación de `debug.keystore` en CI.
+- Se unificó la nomenclatura visible a `VVC SPEED SPEAK`.
+- Se integraron el icono del sistema, el logo horizontal de interfaz y la composición de branding proporcionados.
 
 ## Verificación
 
 - El Gradle Wrapper se generó correctamente con Gradle 9.3.1.
 - La corrección del workflow elimina exactamente la causa observada en la ejecución `39112257865`.
 - La ejecución `39113034013` confirmó que el SDK y Gradle ya funcionan; su único fallo restante fue la ruta de firma, que quedó corregida después.
-- La compilación completa de APK debe confirmarse en el runner de GitHub Actions porque el sandbox de auditoría no tiene Android SDK local instalado.
+- La compilación completa de APK tras la integración visual debe confirmarse en el runner de GitHub Actions porque el sandbox de auditoría no tiene Android SDK local instalado.
 
 ## Recomendaciones
 

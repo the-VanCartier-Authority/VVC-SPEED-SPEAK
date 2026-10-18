@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-VVC Speed Speak - Python / Kivy Android Application
+VVC SPEED SPEAK - Python / Kivy Android Application
 Offline Text-to-Speech (TTS) Reader for PDF & TXT with Kokoro TTS Integration
 Futuristic Obsidian & Neon Cyber Theme
 """
@@ -30,7 +30,7 @@ COLOR_TEXT_MUTED = get_color_from_hex("#94A3B8")
 
 class VVCSpeedSpeakApp(App):
     def build(self):
-        self.title = "VVC Speed Speak"
+        self.title = "VVC SPEED SPEAK"
         self.sentences = []
         self.current_sentence_index = 0
         self.is_playing = False
@@ -99,7 +99,7 @@ class VVCSpeedSpeakApp(App):
         # 4. Large Text Area
         self.text_input = TextInput(
             text=(
-                "Bienvenido a VVC Speed Speak 100% Offline.\n\n"
+                "Bienvenido a VVC SPEED SPEAK 100% Offline.\n\n"
                 "Diseñado para garantizar la privacidad y comprensión auditiva de tus documentos "
                 "PDF y archivos de texto plano sin conexión a internet.\n\n"
                 "Con el modelo Kokoro-82M, las voces en español latino suenan humanas y fluidas."
@@ -182,7 +182,7 @@ class VVCSpeedSpeakApp(App):
 
     def load_demo_text(self, *args):
         self.text_input.text = (
-            "VVC Speed Speak con Kokoro-82M offline.\n\n"
+            "VVC SPEED SPEAK con Kokoro-82M offline.\n\n"
             "Este texto demuestra la cadencia natural de lectura en español latinoamericano. "
             "Cada párrafo es segmentado para reproducir el audio de forma continua y fluida."
         )

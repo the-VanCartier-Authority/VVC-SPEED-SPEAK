@@ -93,44 +93,15 @@ fun FuturisticHeader(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Official VVC Emblem
-                Box(
+                // Official horizontal VVC SPEED SPEAK logo
+                Image(
+                    painter = painterResource(id = R.drawable.logo),
+                    contentDescription = "Logo VVC SPEED SPEAK",
                     modifier = Modifier
-                        .size(46.dp)
-                        .clip(CircleShape)
-                        .border(1.5.dp, Brush.linearGradient(listOf(NeonViolet, NeonCobalt)), CircleShape)
-                        .padding(2.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFF07070D)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_app_logo),
-                        contentDescription = "Logo VVC Speed Speak",
-                        modifier = Modifier.fillMaxWidth(),
-                        contentScale = ContentScale.Crop
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Column {
-                    Text(
-                        text = "VVC SPEED SPEAK",
-                        color = TextWhite,
-                        fontSize = 19.sp,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 1.1.sp,
-                        fontFamily = FontFamily.SansSerif
-                    )
-                    Text(
-                        text = "Texto → Voz → Audio",
-                        color = NeonCobalt,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 0.8.sp
-                    )
-                }
+                        .width(208.dp)
+                        .height(64.dp),
+                    contentScale = ContentScale.Fit
+                )
             }
 
             // Top action buttons
@@ -180,7 +151,7 @@ fun FuturisticHeader(
         ) {
             Image(
                 painter = painterResource(id = R.drawable.vvc_branding_banner),
-                contentDescription = "Banner Oficial VVC Speed Speak",
+                contentDescription = "Banner Oficial VVC SPEED SPEAK",
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(16f / 7.2f),

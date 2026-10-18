@@ -136,7 +136,7 @@ fun MainScreen(
             // Safe insets padding top
             Spacer(modifier = Modifier.height(WindowInsets.statusBars.asPaddingValues().calculateTopPadding()))
 
-            // Futuristic Header with VVC Speed Speak branding and badges
+            // Futuristic Header with VVC SPEED SPEAK branding and badges
             FuturisticHeader(
                 engineType = engineType,
                 onOpenVoiceSettings = { showVoiceDialog = true },

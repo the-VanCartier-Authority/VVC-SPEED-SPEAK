@@ -1,7 +1,7 @@
 [app]
 
 # (str) Title of your application
-title = VVC Speed Speak
+title = VVC SPEED SPEAK
 
 # (str) Package name
 package.name = vvcspeedspeak
